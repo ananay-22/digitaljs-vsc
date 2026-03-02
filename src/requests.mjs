@@ -10,6 +10,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
+import { logInfo, logError } from './logger.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -88,10 +89,21 @@ async function process_files_local(files, opts = {}) {
 }
 
 export async function run_yosys(files, options) {
-    const obj = await process_files_local(files, options);
-    let output = yosys2digitaljs(obj, options);
-    io_ui(output);
-    if (options.transform)
-        output = digitaljs_transform.transformCircuit(output);
-    return { output };
+    try {
+        logInfo(`Starting local synthesis with ${files.length} files...`);
+        const obj = await process_files_local(files, options);
+        logInfo("Yosys compiled successfully. Running yosys2digitaljs AST conversion...");
+        let output = yosys2digitaljs(obj, options);
+        io_ui(output);
+        if (options.transform) {
+            logInfo("Running digitaljs_transform...");
+            output = digitaljs_transform.transformCircuit(output);
+        }
+        logInfo("Synthesis pipeline finished successfully.");
+        return { output };
+    } catch (e) {
+        logError("run_yosys pipeline encountered an error", e);
+        if (e.error) throw e;
+        throw { error: e.message || String(e) };
+    }
 }

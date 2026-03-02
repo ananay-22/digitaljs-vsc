@@ -2,7 +2,7 @@
     "name": "digitaljs",
     "displayName": "DigitalJS",
     "description": "DigitalJS integration for VS Code. Vibecoded and forked/edited with an agent to meet specific needs.",
-    "version": "0.8.1",
+    "version": "0.8.2",
     "license": "SEE LICENSE IN LICENSE",
     "publisher": "ananay-22",
     "author": "Nana Gupta",
@@ -346,6 +346,7 @@
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "npm-run-all compile:*",
+        "compile:assets": "mkdir -p dist/codicons && cp node_modules/@vscode/webview-ui-toolkit/dist/toolkit.min.js dist/ && cp node_modules/@vscode/codicons/dist/* dist/codicons/",
         "compile:views": "webpack --mode production",
         "watch": "npm-run-all watch:*",
         "watch:webpack": "webpack --watch --mode development",

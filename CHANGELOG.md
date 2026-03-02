@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-03-02
+### Added
+- Added a dedicated VSCode Output Channel (`DigitalJS`) for telemetry and verbose logging.
+- Wrapped `Yosys` AST conversions cleanly to propagate compilation errors to the user UI instead of ambiguous "Unknown Error" toasts.
+
+### Fixed
+- Fixed critical bug where the `webview-ui-toolkit` JS and `codicons` CSS would fail to bundle into the packaged `.vsix` installer, resulting in the Synthesis UI components rendering as raw text.
+
+
 ## [0.8.1] - 2026-03-02
 ### Added
 - Added `.agents/workflows/release-workflow.md` agent directive prompt to enforce automated version bumping upon release.

@@ -93,15 +93,12 @@ class DigitalJS {
         this.mainJSPath = vscode.Uri.joinPath(ext_uri, 'dist', 'view-bundle.js');
         this.synthJSPath = vscode.Uri.joinPath(ext_uri, 'dist', 'synth_view.js');
         this.statusJSPath = vscode.Uri.joinPath(ext_uri, 'dist', 'status_view.js');
-        this.uiToolkitPath = vscode.Uri.joinPath(ext_uri, "node_modules", "@vscode",
-                                                 "webview-ui-toolkit", "dist",
-                                                 "toolkit.min.js");
-        this.codIconsPath = vscode.Uri.joinPath(ext_uri, "node_modules", "@vscode",
-                                                "codicons", "dist", "codicon.css");
+        this.uiToolkitPath = vscode.Uri.joinPath(ext_uri, "dist", "toolkit.min.js");
+        this.codIconsPath = vscode.Uri.joinPath(ext_uri, "dist", "codicons", "codicon.css");
         this.simWorker = read_txt_file(vscode.Uri.joinPath(ext_uri, 'dist',
-                                                           'digitaljs-sym-worker.js'));
+            'digitaljs-sym-worker.js'));
         set_yosys_wasm_uri(vscode.Uri.joinPath(ext_uri, "node_modules", "yosysjs",
-                                               "dist", "yosys.wasm"));
+            "dist", "yosys.wasm"));
 
         this.#tickUpdated = new vscode.EventEmitter();
         this.tickUpdated = this.#tickUpdated.event;
@@ -124,61 +121,66 @@ class DigitalJS {
 
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.openView',
-                                            () => this.#openView()));
+                () => this.#openView()));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.showPanel',
-                                            () => vscode.commands.executeCommand(
-                                                'digitaljs-proj-files.focus')));
+                () => vscode.commands.executeCommand(
+                    'digitaljs-proj-files.focus')));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.openViewJSON',
-                                            (item) => this.#openViewJSON(item)));
+                (item) => this.#openViewJSON(item)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.addToViewSource',
-                                            (item) => this.#openViewSource(item)));
+                (item) => this.#openViewSource(item)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.newViewSource',
-                                            (item) => this.#openViewSource(item, true)));
+                (item) => this.#openViewSource(item, true)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.revealCircuit',
-                                            () => this.#revealCircuit()));
+                () => this.#revealCircuit()));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.pause',
-                                            () => this.postPanelMessage({
-                                                command: 'pausesim' })));
+                () => this.postPanelMessage({
+                    command: 'pausesim'
+                })));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.start',
-                                            () => this.postPanelMessage({
-                                                command: 'startsim' })));
+                () => this.postPanelMessage({
+                    command: 'startsim'
+                })));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.newJSON',
-                                            () => this.#newJSON(this.doc_uri, false)));
+                () => this.#newJSON(this.doc_uri, false)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.addFiles',
-                                            () => this.#addFiles()));
+                () => this.#addFiles()));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.exportImage',
-                                            () => this.#exportImage()));
+                () => this.#exportImage()));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.showLuaTerminal',
-                                            () => this.#showLuaTerminal()));
+                () => this.#showLuaTerminal()));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.removeSource',
-                                            (item) => this.#removeSource(item)));
+                (item) => this.#removeSource(item)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.startScript',
-                                            (item) => this.#startScript(item)));
+                (item) => this.#startScript(item)));
         context.subscriptions.push(
             vscode.commands.registerCommand('digitaljs.stopScript',
-                                            (item) => this.#stopScript(item)));
+                (item) => this.#stopScript(item)));
 
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider('digitaljs-proj-synth',
-                                                      new SynthProvider(this), {}));
+                new SynthProvider(this), {}));
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider('digitaljs-proj-status',
-                                                      new StatusProvider(this),
-                                                      { webviewOptions: {
-                                                          retainContextWhenHidden: true }}));
+                new StatusProvider(this),
+                {
+                    webviewOptions: {
+                        retainContextWhenHidden: true
+                    }
+                }));
         this.#filesView = new FilesView(this);
         context.subscriptions.push(
             vscode.window.registerTreeDataProvider('digitaljs-proj-files', this.#filesView));
@@ -191,7 +193,7 @@ class DigitalJS {
                     webviewOptions: { retainContextWhenHidden: true },
                     supportsMultipleEditorsPerDocument: false,
                 }
-        ));
+            ));
 
         context.subscriptions.push(
             vscode.window.registerCustomEditorProvider(
@@ -201,15 +203,15 @@ class DigitalJS {
                     webviewOptions: { retainContextWhenHidden: true },
                     supportsMultipleEditorsPerDocument: false,
                 }
-        ));
+            ));
 
         context.subscriptions.push(this);
 
         this.runStatesUpdated((states) => {
             vscode.commands.executeCommand('setContext', 'digitaljs.view_hascircuit',
-                                           states.hascircuit);
+                states.hascircuit);
             vscode.commands.executeCommand('setContext', 'digitaljs.view_running',
-                                           states.running);
+                states.running);
         });
 
         vscode.commands.executeCommand('setContext', 'digitaljs.view_hascircuit', false);
@@ -472,7 +474,7 @@ class DigitalJS {
                 vscode.commands.executeCommand('setContext', 'digitaljs.view_isfocus', false);
             }
             vscode.commands.executeCommand('setContext', 'digitaljs.view_isactive',
-                                           !!this.#circuitView);
+                !!this.#circuitView);
         });
         if (this.#pendingSources.length > 0) {
             const uri_str = document.uri.toString();
@@ -534,13 +536,17 @@ class DigitalJS {
                         return doc_fs_uri.with({ scheme: 'untitled' });
                     }
                 }
-                return vscode.Uri.from({ scheme: 'untitled', authority: hint.authority,
-                                         path: path.join(path.dirname(hint.path), new_name()) });
+                return vscode.Uri.from({
+                    scheme: 'untitled', authority: hint.authority,
+                    path: path.join(path.dirname(hint.path), new_name())
+                });
             }
             if (use_workspace) {
                 const dir_uri = find_workspace_uri(hint, workspaceFolders);
-                return vscode.Uri.from({ scheme: 'untitled', authority: dir_uri.authority,
-                                         path: path.join(dir_uri.path, new_name()) });
+                return vscode.Uri.from({
+                    scheme: 'untitled', authority: dir_uri.authority,
+                    path: path.join(dir_uri.path, new_name())
+                });
             }
             // If we reached here, we know that there isn't any hint
             // (or we'd have either used that or use it to find a workspace)
@@ -597,7 +603,7 @@ class DigitalJS {
         if (!item)
             return;
         const default_name = item.id === undefined ? 'circuit.png' :
-                             `${item.label.replaceAll(' ', '-')}.png`;
+            `${item.label.replaceAll(' ', '-')}.png`;
         let default_path = this.doc_dir_uri;
         if (default_path && default_path.scheme == 'untitled')
             default_path = undefined;
@@ -610,7 +616,7 @@ class DigitalJS {
         if (!default_path)
             default_path = find_workspace_uri(undefined, vscode.workspace.workspaceFolders);
         const defaultUri = default_path ?
-                           vscode.Uri.joinPath(default_path, default_name) : undefined;
+            vscode.Uri.joinPath(default_path, default_name) : undefined;
         const file = await vscode.window.showSaveDialog({
             defaultUri,
             filters: {
@@ -633,8 +639,10 @@ class DigitalJS {
                     `Unable to save image ${message.uri}: unknown extension ${ext}`);
             }
         }
-        const cmd = { command: 'exportimage',
-                      type: img_type, uri: file.toString() }
+        const cmd = {
+            command: 'exportimage',
+            type: img_type, uri: file.toString()
+        }
         if (item.id !== undefined) {
             cmd.subcircuit = item.id;
             cmd.subcircuit_title = item.label;
