@@ -11,7 +11,7 @@
         "url": "https://github.com/ananay-22/digitaljs-vsc.git"
     },
     "engines": {
-        "vscode": "^1.62.0"
+        "vscode": "^1.90.0"
     },
     "icon": "imgs/digitaljs.png",
     "categories": [
@@ -357,7 +357,6 @@
         "open-in-browser": "vscode-test-web --extensionDevelopmentPath=. ."
     },
     "devDependencies": {
-        "@types/glob": "^9.0.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "25.x",
         "@types/vscode": "^1.109.0",
