@@ -29,29 +29,35 @@ async function process_files_local(files, opts = {}) {
 
     let script = 'design -reset;\n';
 
+    const incdirs = new Set();
+    for (const file of files) {
+        incdirs.add(path.dirname(file).replace(/\\/g, '/'));
+    }
+    const incStr = Array.from(incdirs).map(d => `-I"${d}"`).join(' ');
+
     for (const file of files) {
         const ext = path.extname(file);
         const safe_file = file.replace(/\\/g, '/');
         if (ext === '.sv') {
-            script += `read_verilog -sv "${safe_file}";\n`;
+            script += `read_verilog -overwrite -sv ${incStr} "${safe_file}";\n`;
         } else {
-            script += `read_verilog "${safe_file}";\n`;
+            script += `read_verilog -overwrite ${incStr} "${safe_file}";\n`;
         }
     }
 
     script += 'hierarchy -auto-top;\n';
     script += 'proc;\n';
     script += (opts.optimize ? 'opt;\n' : 'opt_clean;\n');
-    
+
     if (opts.fsm && opts.fsm !== 'no') {
         const fsmexpand = opts.fsmexpand ? ' -expand' : '';
         script += (opts.fsm === 'nomap' ? `fsm -nomap${fsmexpand};\n` : `fsm${fsmexpand};\n`);
     }
-    
+
     script += 'memory -nomap;\n';
     script += 'wreduce -memx;\n';
     script += (opts.optimize ? 'opt -full;\n' : 'opt_clean;\n');
-    
+
     const safe_outJsonPath = outJsonPath.replace(/\\/g, '/');
     script += `json -o "${safe_outJsonPath}";\n`;
 
@@ -65,18 +71,18 @@ async function process_files_local(files, opts = {}) {
 
     try {
         await execFileAsync(yosysPath, args, { maxBuffer: 1024 * 1024 * 100 });
-        
+
         const outputData = await fs.promises.readFile(outJsonPath, 'utf8');
         const outputJson = JSON.parse(outputData);
-        
-        await fs.promises.unlink(outJsonPath).catch(() => {});
-        await fs.promises.unlink(ysScriptPath).catch(() => {});
-        
+
+        await fs.promises.unlink(outJsonPath).catch(() => { });
+        await fs.promises.unlink(ysScriptPath).catch(() => { });
+
         return outputJson;
     } catch (e) {
         console.error("Yosys execution failed:", e);
-        await fs.promises.unlink(outJsonPath).catch(() => {});
-        await fs.promises.unlink(ysScriptPath).catch(() => {});
+        await fs.promises.unlink(outJsonPath).catch(() => { });
+        await fs.promises.unlink(ysScriptPath).catch(() => { });
         throw { error: e.message || String(e) };
     }
 }
