@@ -22,26 +22,28 @@ async function process_files_local(files, opts = {}) {
     const yosysPath = config.get('yosysPath') || 'yosys';
     let yosysArgs = config.get('yosysArgs') || '';
 
-    const tmpDir = os.tmpdir();
-    const randId = `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const outJsonPath = path.join(tmpDir, `yosys_out_${randId}.json`);
-    const ysScriptPath = path.join(tmpDir, `yosys_script_${randId}.ys`);
+    const tmpSandboxDir = path.join(tmpDir, `yosys_sandbox_${randId}`);
+    await fs.promises.mkdir(tmpSandboxDir, { recursive: true });
 
     let script = 'design -reset;\n';
 
-    const incdirs = new Set();
-    for (const file of files) {
-        incdirs.add(path.dirname(file).replace(/\\/g, '/'));
+    const localSandboxFiles = [];
+    for (const fileObj of files) {
+        // fileObj is { fsPath: '/abs/path/to/script.v', name: 'src/script.v' }
+        // We must preserve the exact hierarchy of `file.name` inside the sandbox
+        // so that Yosys emits the correct `src` attribute for source highlighting mappings.
+        const sandboxDest = path.join(tmpSandboxDir, fileObj.name);
+        await fs.promises.mkdir(path.dirname(sandboxDest), { recursive: true });
+        await fs.promises.copyFile(fileObj.fsPath, sandboxDest);
+        localSandboxFiles.push(fileObj.name);
     }
-    const incStr = Array.from(incdirs).map(d => `-I"${d}"`).join(' ');
 
-    for (const file of files) {
-        const ext = path.extname(file);
-        const safe_file = file.replace(/\\/g, '/');
+    for (const relName of localSandboxFiles) {
+        const ext = path.extname(relName);
         if (ext === '.sv') {
-            script += `read_verilog -overwrite -sv ${incStr} "${safe_file}";\n`;
+            script += `read_verilog -overwrite -sv "${relName}";\n`;
         } else {
-            script += `read_verilog -overwrite ${incStr} "${safe_file}";\n`;
+            script += `read_verilog -overwrite "${relName}";\n`;
         }
     }
 
@@ -70,19 +72,17 @@ async function process_files_local(files, opts = {}) {
     args.push('-s', ysScriptPath);
 
     try {
-        await execFileAsync(yosysPath, args, { maxBuffer: 1024 * 1024 * 100 });
+        await execFileAsync(yosysPath, args, { cwd: tmpSandboxDir, maxBuffer: 1024 * 1024 * 100 });
 
         const outputData = await fs.promises.readFile(outJsonPath, 'utf8');
         const outputJson = JSON.parse(outputData);
 
-        await fs.promises.unlink(outJsonPath).catch(() => { });
-        await fs.promises.unlink(ysScriptPath).catch(() => { });
+        await fs.promises.rm(tmpSandboxDir, { recursive: true, force: true }).catch(() => { });
 
         return outputJson;
     } catch (e) {
         console.error("Yosys execution failed:", e);
-        await fs.promises.unlink(outJsonPath).catch(() => { });
-        await fs.promises.unlink(ysScriptPath).catch(() => { });
+        await fs.promises.rm(tmpSandboxDir, { recursive: true, force: true }).catch(() => { });
         throw { error: e.message || String(e) };
     }
 }

@@ -307,7 +307,7 @@ export class Sources {
             const content = doc ? doc.getText() : await read_txt_file(uri);
             info.sha512 = hash_sha512(content);
 
-            filePaths.push(uri.fsPath);
+            filePaths.push({ fsPath: uri.fsPath, name: info.name });
         }
 
         for (const doc of docsToSave) {
