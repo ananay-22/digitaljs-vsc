@@ -131,6 +131,8 @@ function web_ext_config(env, argv) {
             fallback: {
                 https: false,
                 fs: false,
+                os: false,
+                child_process: false,
                 assert: require.resolve("assert"),
                 util: require.resolve("util"),
             }
@@ -177,4 +179,4 @@ function local_ext_config(env, argv) {
 }
 
 module.exports = [main_view_config, status_view_config, synth_view_config,
-                  digitaljs_worker_config, web_ext_config, local_ext_config];
+    digitaljs_worker_config, web_ext_config, local_ext_config];

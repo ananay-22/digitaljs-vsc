@@ -47,8 +47,10 @@ class SourceInfo {
         // Convert file paths to relative path if possible since this will make
         // the project more "portable".
         if (rel_compat2(doc_dir_uri, this.uri))
-            return { relpath: path.relative(doc_dir_uri.path, this.uri.path),
-                     ...this.#toBaseJSON() };
+            return {
+                relpath: path.relative(doc_dir_uri.path, this.uri.path),
+                ...this.#toBaseJSON()
+            };
         return this.toBackup();
     }
     static load(doc_uri, data) {
@@ -56,10 +58,10 @@ class SourceInfo {
             if (!data.uri)
                 return;
             return new SourceInfo(vscode.Uri.parse(data.uri),
-                                  data.name, data.sha512, data.deleted);
+                data.name, data.sha512, data.deleted);
         }
         return new SourceInfo(vscode.Uri.joinPath(doc_uri, '..', data.relpath),
-                              data.name, data.sha512, data.deleted);
+            data.name, data.sha512, data.deleted);
     }
 }
 
@@ -288,22 +290,31 @@ export class Sources {
         }
     }
     async #loadSources() {
-        const data = {};
+        const filePaths = [];
+        const docsToSave = [];
         const docs = {};
-        // These are the potentially modified documents
-        // load from here first if they exist.
         for (const doc of vscode.workspace.textDocuments)
             docs[doc.uri.toString()] = doc;
+
         for (const [uri_str, info] of this.entries()) {
             if (!info.name) // deleted or lua scripts
                 continue;
             const uri = info.uri;
             const doc = docs[uri_str];
+            if (doc && doc.isDirty) {
+                docsToSave.push(doc);
+            }
             const content = doc ? doc.getText() : await read_txt_file(uri);
             info.sha512 = hash_sha512(content);
-            data[info.name] = content;
+
+            filePaths.push(uri.fsPath);
         }
-        return data;
+
+        for (const doc of docsToSave) {
+            await doc.save();
+        }
+
+        return filePaths;
     }
     async doSynth(opts) {
         const basenames_map = this.#basenamesMap();
