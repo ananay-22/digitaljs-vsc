@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-03-02
+### Fixed
+- Fixed critical `ReferenceError: tmpDir is not defined` bug during sandbox initialization that broke the entire `run_yosys` pipeline. Properly re-declared isolated namespace IO paths (`ysScriptPath`, `outJsonPath`, `randId`) that were accidentally dropped in previous refactors.
+
+
 ## [0.8.2] - 2026-03-02
 ### Added
 - Added a dedicated VSCode Output Channel (`DigitalJS`) for telemetry and verbose logging.

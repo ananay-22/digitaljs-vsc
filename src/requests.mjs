@@ -23,8 +23,13 @@ async function process_files_local(files, opts = {}) {
     const yosysPath = config.get('yosysPath') || 'yosys';
     let yosysArgs = config.get('yosysArgs') || '';
 
+    const tmpDir = os.tmpdir();
+    const randId = Date.now() + "_" + Math.floor(Math.random() * 10000);
     const tmpSandboxDir = path.join(tmpDir, `yosys_sandbox_${randId}`);
     await fs.promises.mkdir(tmpSandboxDir, { recursive: true });
+
+    const ysScriptPath = path.join(tmpSandboxDir, 'yosys_script.ys');
+    const outJsonPath = path.join(tmpSandboxDir, 'yosys_output.json');
 
     let script = 'design -reset;\n';
 

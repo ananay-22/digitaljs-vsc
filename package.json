@@ -2,7 +2,7 @@
     "name": "digitaljs",
     "displayName": "DigitalJS",
     "description": "DigitalJS integration for VS Code. Vibecoded and forked/edited with an agent to meet specific needs.",
-    "version": "0.8.2",
+    "version": "0.8.3",
     "license": "SEE LICENSE IN LICENSE",
     "publisher": "ananay-22",
     "author": "Nana Gupta",
