@@ -5,50 +5,52 @@
 import { WebviewMsgQueue } from './webview_msg_queue.mjs';
 
 export class StatusProvider {
-    #djs
-    constructor(djs) {
-        this.#djs = djs;
-    }
-    resolveWebviewView(view, context, _token) {
-        const ui_uri = view.webview.asWebviewUri(this.#djs.uiToolkitPath);
-        const status_uri = view.webview.asWebviewUri(this.#djs.statusJSPath);
-        const icon_uri = view.webview.asWebviewUri(this.#djs.codIconsPath);
-        view.webview.options = {
-            enableScripts: true
-        };
-        const queue = new WebviewMsgQueue(view.webview);
-        view.webview.onDidReceiveMessage((msg) => {
-            // we don't really care what message it is but if we've got a message
-            // then the initialization has finished...
-            queue.release();
-            switch (msg.command) {
-                case 'iopanel:update':
-                    this.#djs.postPanelMessage({ command: 'iopanel:update',
-                                                 id: msg.id, value: msg.value });
-                    return;
-                case 'panel-cmd':
-                    this.#djs.postPanelMessage({ command: msg.panel_cmd });
-                    return;
-            }
-        });
-        const listeners = [];
-        listeners.push(this.#djs.tickUpdated(async (tick) => {
-            queue.post({ command: 'tick', tick });
-        }));
-        listeners.push(this.#djs.iopanelMessage(async (message) => {
-            queue.post(message);
-        }));
-        listeners.push(this.#djs.runStatesUpdated(async (state) => {
-            queue.post({ command: 'runstate', state });
-        }));
-        view.onDidDispose(() => {
-            for (const listener of listeners) {
-                listener.dispose();
-            }
-        });
-        const rs = this.#djs.runStates;
-        const enabled = b => b ? '' : 'disabled';
-        view.webview.html = `<!DOCTYPE html>
+  #djs
+  constructor(djs) {
+    this.#djs = djs;
+  }
+  resolveWebviewView(view, context, _token) {
+    const ui_uri = view.webview.asWebviewUri(this.#djs.uiToolkitPath);
+    const status_uri = view.webview.asWebviewUri(this.#djs.statusJSPath);
+    const icon_uri = view.webview.asWebviewUri(this.#djs.codIconsPath);
+    view.webview.options = {
+      enableScripts: true
+    };
+    const queue = new WebviewMsgQueue(view.webview);
+    view.webview.onDidReceiveMessage((msg) => {
+      // we don't really care what message it is but if we've got a message
+      // then the initialization has finished...
+      queue.release();
+      switch (msg.command) {
+        case 'iopanel:update':
+          this.#djs.postPanelMessage({
+            command: 'iopanel:update',
+            id: msg.id, value: msg.value
+          });
+          return;
+        case 'panel-cmd':
+          this.#djs.postPanelMessage({ command: msg.panel_cmd });
+          return;
+      }
+    });
+    const listeners = [];
+    listeners.push(this.#djs.tickUpdated(async (tick) => {
+      queue.post({ command: 'tick', tick });
+    }));
+    listeners.push(this.#djs.iopanelMessage(async (message) => {
+      queue.post(message);
+    }));
+    listeners.push(this.#djs.runStatesUpdated(async (state) => {
+      queue.post({ command: 'runstate', state });
+    }));
+    view.onDidDispose(() => {
+      for (const listener of listeners) {
+        listener.dispose();
+      }
+    });
+    const rs = this.#djs.runStates;
+    const enabled = b => b ? '' : 'disabled';
+    view.webview.html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -89,6 +91,9 @@ export class StatusProvider {
                    ${enabled(!rs.running && rs.pendingEvents)}>
       <i class="codicon codicon-debug-continue"></i>
     </vscode-button>
+    <vscode-button id="saveimg" appearance="icon" title="Save Image">
+      <i class="codicon codicon-save"></i>
+    </vscode-button>
   </div>
   <div style="flex-grow:0;flex-shrink:0;;margin-bottom:2px">
     <vscode-text-field id="clock" readonly value=${this.#djs.tick}>
@@ -101,5 +106,5 @@ export class StatusProvider {
   </div>
 </body>
 </html>`;
-    }
+  }
 }

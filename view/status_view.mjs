@@ -9,10 +9,10 @@ const vscode = acquireVsCodeApi();
 
 const controlCodes20 = [
     'NUL', 'SOH', 'STX', 'ETX', 'EOT', 'ENQ', 'ACK', 'BEL',
-    'BS',  'HT',  'LF',  'VT',  'FF',  'CR',  'SO',  'SI',
+    'BS', 'HT', 'LF', 'VT', 'FF', 'CR', 'SO', 'SI',
     'DLE', 'DC1', 'DC2', 'DC3', 'DC4', 'NAK', 'SYN', 'ETB',
-    'CAN', 'EM',  'SUB', 'ESC', 'FS',  'GS',  'RS',  'US',
-    'SP',  'DEL'];
+    'CAN', 'EM', 'SUB', 'ESC', 'FS', 'GS', 'RS', 'US',
+    'SP', 'DEL'];
 
 // Copied from digitaljs since it wasn't exported.
 class Display3vlASCII extends Display3vlWithRegex {
@@ -70,6 +70,7 @@ class Status {
     #fast_forward_btn
     #single_step_btn
     #next_event_btn
+    #saveimg_btn
     constructor() {
         window.addEventListener('message', event => this.#processMessage(event));
         window.addEventListener("load", () => this.#initialize());
@@ -85,6 +86,7 @@ class Status {
         this.#fast_forward_btn = $('#fast-forward-sim');
         this.#single_step_btn = $('#single-step-sim');
         this.#next_event_btn = $('#next-event-sim');
+        this.#saveimg_btn = $('#saveimg');
         const btn_cmd = (btn, panel_cmd) => {
             btn.click(() => {
                 vscode.postMessage({ command: 'panel-cmd', panel_cmd });
@@ -95,6 +97,9 @@ class Status {
         btn_cmd(this.#fast_forward_btn, 'fastforwardsim');
         btn_cmd(this.#single_step_btn, 'singlestepsim');
         btn_cmd(this.#next_event_btn, 'nexteventsim');
+        this.#saveimg_btn.click(() => {
+            vscode.postMessage({ command: 'exportimage' });
+        });
 
         // Release the messages from the main extension
         vscode.postMessage({ command: 'initialized' });
@@ -126,7 +131,7 @@ class Status {
         }
         const is_input = view.dir == 'input';
         const w = view.bits == 1 ? this.#newBitWidget(view, is_input) :
-                  this.#newNumberWidget(view, is_input);
+            this.#newNumberWidget(view, is_input);
         w.dir = view.dir;
         w.bits = view.bits;
         return w;
@@ -153,8 +158,10 @@ class Status {
         updater(view.value);
         if (is_input) {
             checkbox.change(() => {
-                vscode.postMessage({ command: 'iopanel:update', id,
-                                     value: checkbox.prop('checked') ? '1' : '0' });
+                vscode.postMessage({
+                    command: 'iopanel:update', id,
+                    value: checkbox.prop('checked') ? '1' : '0'
+                });
             });
         }
         return { widget, updater };
@@ -230,7 +237,7 @@ class Status {
             input.prop('size', sz);
             if (is_input)
                 input.prop('maxlength', sz)
-                     .prop('pattern', this.#dp3vl.pattern(base));
+                    .prop('pattern', this.#dp3vl.pattern(base));
             updater(bin);
         };
         base_updater('hex');

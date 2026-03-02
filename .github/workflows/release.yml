@@ -1,0 +1,56 @@
+name: Build and Release Extension
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install vsce CLI
+        run: npm install -g @vscode/vsce
+
+      - name: Build Extension
+        run: npm run compile
+
+      - name: Package Extension
+        run: vsce package --no-dependencies
+        id: package
+        
+      - name: Get package name
+        id: vars
+        run: echo "VSIX_NAME=$(ls *.vsix)" >> $GITHUB_ENV
+
+      - name: Read package.json Version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Auto-Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          files: ${{ env.VSIX_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
