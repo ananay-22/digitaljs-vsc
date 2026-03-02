@@ -133,6 +133,7 @@ function web_ext_config(env, argv) {
                 fs: false,
                 os: false,
                 child_process: false,
+                vm: false,
                 assert: require.resolve("assert"),
                 util: require.resolve("util"),
             }
