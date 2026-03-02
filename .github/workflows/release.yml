@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      NODE_OPTIONS: --openssl-legacy-provider
 
     steps:
       - name: Checkout Code
